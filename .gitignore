@@ -1,32 +1,62 @@
-# Prerequisites
-*.d
+# Archivos de configuración de CLion
+.idea/
 
-# Compiled Object files
-*.slo
-*.lo
-*.o
-*.obj
+# Archivos y carpetas generados por CMake
+cmake-build-*/
+CMakeFiles/
+CMakeCache.txt
+cmake_install.cmake
+Makefile
+build/
+compile_commands.json
+Testing/
+CTestTestfile.cmake
+CTestCostData.txt
 
-# Precompiled Headers
-*.gch
-*.pch
-
-# Compiled Dynamic libraries
+# Archivos de salida binarios
+*.out
+*.exe
+*.dll
 *.so
 *.dylib
-*.dll
-
-# Fortran module files
-*.mod
-*.smod
-
-# Compiled Static libraries
-*.lai
-*.la
+*.o
 *.a
-*.lib
+*.log
 
-# Executables
-*.exe
-*.out
-*.app
+# Archivos de depuración
+*.gch
+*.obj
+*.pdb
+*.ilk
+*.ipdb
+*.iobj
+
+# Archivos de backup
+*.swp
+*~
+
+# Archivos específicos de Windows
+Thumbs.db
+desktop.ini
+
+# Archivos específicos de macOS
+.DS_Store
+
+# Archivos de compilación de C++
+*.dSYM/
+
+# Archivos de entorno de usuario
+.vscode/
+.env
+.local/
+
+# Archivos de cobertura de código
+*.gcda
+*.gcno
+*.gcov
+
+# Archivos de configuración de IDE adicionales
+*.iml
+*.ipr
+*.iws
+*.ccls-cache/
