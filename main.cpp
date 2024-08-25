@@ -105,6 +105,11 @@ int main() {
             // If the point is too close to the center, move it to the edge of the galaxy
             if (radius < 0) {
                 radius = maxRadius;
+
+                // Add some random variation to the angle and radius
+                angle += static_cast<float>(rand()) / RAND_MAX * 0.2f - 0.1f; // Slight random variation in angle
+                radius *= 0.9f + static_cast<float>(rand()) / RAND_MAX * 0.2f; // Slight random variation in radius
+
                 // Set a new random color for the point
                 sf::Color newColor(rand() % 256, rand() % 256, rand() % 256);
                 points[i].setFillColor(newColor);
