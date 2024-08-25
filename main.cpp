@@ -21,6 +21,21 @@ int main() {
     // Vector to store all the points in the galaxy
     std::vector<sf::CircleShape> points(numPoints);
 
+    // Set a font for the fps counter
+    sf::Font font;
+    if (!font.loadFromFile("C:/Windows/Fonts/arial.ttf")) {
+        return -1;
+    }
+
+    sf::Text fpsText;
+    fpsText.setFont(font);
+    fpsText.setCharacterSize(20);
+    fpsText.setFillColor(sf::Color::White);
+    fpsText.setPosition(10, 10);
+
+    // Clock to measure the time between frames
+    sf::Clock clock;
+
     // Generate the points in the galaxy
     for (int i = 0; i < numPoints; ++i) {
         // Add a random offset to the angle
@@ -53,6 +68,16 @@ int main() {
             if (event.type == sf::Event::Closed)
                 window.close();
         }
+
+        // Calculate the time between frames
+        float currentTime = clock.restart().asSeconds();
+        float fps = 1.0f / currentTime;
+
+        // Update the fps counter
+        std::stringstream ss;
+        ss << "FPS: " << static_cast<int>(fps);
+        //printf("FPS: %d\n", static_cast<int>(fps));
+        fpsText.setString(ss.str());
 
         window.clear(sf::Color::Black); // Clear the window with a black color
 
@@ -95,6 +120,8 @@ int main() {
             // Draw the point
             window.draw(points[i]);
         }
+
+        window.draw(fpsText); // Draw the fps counter
 
         window.display(); // Display the window
     }
