@@ -9,11 +9,11 @@ int main() {
 
     // Parameters for the galaxy
     const int numPoints = 15000;             // Number of points in the galaxy
-    const float maxRadius = 450.0f;         // Maximum radius of the galaxy
-    const float angleIncrement = 0.70f;     // Angle increment for the spiral arms
+    const float maxRadius = 450.0f;          // Maximum radius of the galaxy
+    const float angleIncrement = 0.70f;      // Angle increment for the spiral arms
     const float speed = 0.035f;              // Speed of the points moving towards the center
-    float rotationSpeed = 0.0007f;          // Speed of the rotation of the galaxy
-    const int numArms = 5;                  // Number of spiral arms
+    float baseRotationSpeed = 0.0007f;       // Base speed of the rotation of the galaxy
+    const int numArms = 5;                   // Number of spiral arms
 
     // Center of the window
     sf::Vector2f center(window.getSize().x / 2.0f, window.getSize().y / 2.0f);
@@ -43,13 +43,13 @@ int main() {
         float armAngle = (i * angleIncrement) + (2 * 3.14159f / numArms) * (rand() % numArms) + angleOffset * 0.5f;
 
         // Calculate the initial position of the point
-        float radius = maxRadius * std::sqrt((float)(rand() % 1000) / 1000.0f) * (0.9f + 0.2f * (static_cast<float>(rand()) / RAND_MAX));
+        float radius = maxRadius * std::sqrt(static_cast<float>(rand() % 1000) / 1000.0f) * (0.9f + 0.2f * (static_cast<float>(rand()) / RAND_MAX));
 
         // Calculate the position of the point
         float x = center.x + radius * std::cos(armAngle);
         float y = center.y + radius * std::sin(armAngle);
 
-        // Create a point with a radius, generate a random number and if it is less than 0.7, create a point with a radius of 1 pixels, otherwise create a point with a radius of 2 pixel
+        // Create a point with a radius, generate a random number and if it is less than 0.7, create a point with a radius of 1 pixel, otherwise create a point with a radius of 2 pixels
         sf::CircleShape star((rand() % 10) < 3 ? 2.0f : 1.0f);
         star.setPosition(x, y);
 
@@ -76,7 +76,6 @@ int main() {
         // Update the fps counter
         std::stringstream ss;
         ss << "FPS: " << static_cast<int>(fps);
-        //printf("FPS: %d\n", static_cast<int>(fps));
         fpsText.setString(ss.str());
 
         window.clear(sf::Color::Black); // Clear the window with a black color
@@ -94,7 +93,10 @@ int main() {
             float angle = std::atan2(dy, dx);
             float radius = std::sqrt(dx * dx + dy * dy);
 
-            // Rotate the point
+            // Adjust rotation speed based on distance from center
+            float rotationSpeed = baseRotationSpeed * (1.0f + (maxRadius - radius) / maxRadius);
+
+            // Rotate the point faster if it is closer to the center
             angle += rotationSpeed;
 
             float attractionSpeed = speed * (1.0f + (maxRadius - radius) / maxRadius);
