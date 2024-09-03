@@ -2,6 +2,24 @@
 #include <cmath>
 #include <cstdlib>
 #include <sstream>
+#include <vector>
+
+struct Star {
+    sf::ConvexShape shape;
+    float lifetime;
+};
+
+sf::ConvexShape createStar(float radius, int points) {
+    sf::ConvexShape star;
+    star.setPointCount(points * 2);
+    for (int i = 0; i < points * 2; i++) {
+        float angle = i * 3.14159f / points;
+        float r = (i % 2 == 0) ? radius : radius / 2;
+        star.setPoint(i, sf::Vector2f(std::cos(angle) * r, std::sin(angle) * r));
+    }
+    star.setOrigin(radius, radius);
+    return star;
+}
 
 int main() {
     // Crear la ventana
@@ -36,7 +54,11 @@ int main() {
     // Reloj para medir el tiempo entre cuadros
     sf::Clock clock;
 
-    // Generar los puntos en la galaxia
+    // Vector para almacenar las estrellas adicionales
+    std::vector<Star> extraStars;
+    sf::Clock starClock;
+
+    // Generar los puntos en la galaxia (como círculos)
     for (int i = 0; i < numPoints; ++i) {
         // Añadir un desplazamiento aleatorio al ángulo
         float angleOffset = static_cast<float>(rand()) / RAND_MAX * 2 * 3.14159f;
@@ -49,7 +71,7 @@ int main() {
         float x = center.x + radius * std::cos(armAngle);
         float y = center.y + radius * std::sin(armAngle);
 
-        // Crear un punto con un radio de 1 o 2 píxeles
+        // Crear un punto con un radio de 1 o 2 píxeles (círculos)
         sf::CircleShape star((rand() % 10) < 3 ? 2.0f : 1.0f);
         star.setPosition(x, y);
 
@@ -57,25 +79,25 @@ int main() {
         sf::Color color;
         float normalizedRadius = radius / maxRadius;
         if (normalizedRadius < 0.3f) {
-            // Amarillo hacia el centro
+            // Amarillo oscuro hacia el centro
             color = sf::Color(
-                255,
-                255,
-                200 + static_cast<sf::Uint8>(55 * normalizedRadius / 0.3f)
+                200,
+                200,
+                100 + static_cast<sf::Uint8>(55 * normalizedRadius / 0.3f)
             );
         } else if (normalizedRadius < 0.7f) {
-            // Azul en la zona media
+            // Azul oscuro en la zona media
             color = sf::Color(
-                static_cast<sf::Uint8>(255 * (1 - (normalizedRadius - 0.3f) / 0.4f)),
-                static_cast<sf::Uint8>(200 + 55 * (normalizedRadius - 0.3f) / 0.4f),
-                255
+                static_cast<sf::Uint8>(100 * (1 - (normalizedRadius - 0.3f) / 0.4f)),
+                static_cast<sf::Uint8>(100 + 55 * (normalizedRadius - 0.3f) / 0.4f),
+                200
             );
         } else {
-            // Violeta en los bordes
+            // Violeta oscuro en los bordes
             color = sf::Color(
-                128 + static_cast<sf::Uint8>(127 * (normalizedRadius - 0.7f) / 0.3f),
+                80 + static_cast<sf::Uint8>(127 * (normalizedRadius - 0.7f) / 0.3f),
                 0,
-                255
+                180
             );
         }
 
@@ -104,7 +126,7 @@ int main() {
 
         window.clear(sf::Color::Black); // Limpiar la ventana con un color negro
 
-        // Actualizar la posición de los puntos
+        // Actualizar la posición de los puntos (círculos de la galaxia)
         for (int i = 0; i < numPoints; ++i) {
             // Obtener la posición actual del punto
             sf::Vector2f pos = points[i].getPosition();
@@ -140,25 +162,25 @@ int main() {
                 float normalizedRadius = radius / maxRadius;
                 sf::Color newColor;
                 if (normalizedRadius < 0.3f) {
-                    // Amarillo hacia el centro
+                    // Amarillo oscuro hacia el centro
                     newColor = sf::Color(
-                        255,
-                        255,
-                        200 + static_cast<sf::Uint8>(55 * normalizedRadius / 0.3f)
+                        200,
+                        200,
+                        100 + static_cast<sf::Uint8>(55 * normalizedRadius / 0.3f)
                     );
                 } else if (normalizedRadius < 0.7f) {
-                    // Azul en la zona media
+                    // Azul oscuro en la zona media
                     newColor = sf::Color(
-                        static_cast<sf::Uint8>(255 * (1 - (normalizedRadius - 0.3f) / 0.4f)),
-                        static_cast<sf::Uint8>(200 + 55 * (normalizedRadius - 0.3f) / 0.4f),
-                        255
+                        static_cast<sf::Uint8>(100 * (1 - (normalizedRadius - 0.3f) / 0.4f)),
+                        static_cast<sf::Uint8>(100 + 55 * (normalizedRadius - 0.3f) / 0.4f),
+                        200
                     );
                 } else {
-                    // Violeta en los bordes
+                    // Violeta oscuro en los bordes
                     newColor = sf::Color(
-                        128 + static_cast<sf::Uint8>(127 * (normalizedRadius - 0.7f) / 0.3f),
+                        80 + static_cast<sf::Uint8>(127 * (normalizedRadius - 0.7f) / 0.3f),
                         0,
-                        255
+                        180
                     );
                 }
                 points[i].setFillColor(newColor);
@@ -173,6 +195,36 @@ int main() {
 
             // Dibujar el punto
             window.draw(points[i]);
+        }
+
+        // Generar estrellas adicionales al azar
+        if (starClock.getElapsedTime().asSeconds() > 0.1f) {
+            Star newStar;
+            float starRadius = static_cast<float>(rand()) / RAND_MAX * maxRadius;
+            float starAngle = static_cast<float>(rand()) / RAND_MAX * 2 * 3.14159f;
+            newStar.shape = createStar(6.0f, 5);  // Crear estrella más grande para ser visible
+            newStar.shape.setPosition(
+                center.x + starRadius * std::cos(starAngle),
+                center.y + starRadius * std::sin(starAngle)
+            );
+            newStar.shape.setFillColor(sf::Color(255, 255, 255, 255)); // Mayor opacidad inicial
+            newStar.lifetime = 1.5f; // Duración de la estrella en segundos
+            extraStars.push_back(newStar);
+            starClock.restart();
+        }
+
+        // Dibujar y actualizar las estrellas adicionales
+        for (size_t i = 0; i < extraStars.size();) {
+            Star &star = extraStars[i];
+            window.draw(star.shape);
+            star.lifetime -= currentTime;
+            if (star.lifetime <= 0.0f) {
+                extraStars.erase(extraStars.begin() + i);
+            } else {
+                float alpha = static_cast<sf::Uint8>(255 * (star.lifetime / 1.5f)); // Ajuste del tiempo de vida
+                star.shape.setFillColor(sf::Color(255, 255, 255, alpha));
+                ++i;
+            }
         }
 
         window.draw(fpsText); // Dibujar el contador de FPS
