@@ -3,6 +3,7 @@
 #include <cstdlib>
 #include <sstream>
 #include <vector>
+#include <omp.h>
 
 struct Star {
     sf::ConvexShape shape;
@@ -12,7 +13,8 @@ struct Star {
 sf::ConvexShape createStar(float radius, int points) {
     sf::ConvexShape star;
     star.setPointCount(points * 2);
-    for (int i = 0; i < points * 2; i++) {
+    #pragma omp parallel for
+for (int i = 0; i < points * 2; i++) {
         float angle = i * 3.14159f / points;
         float r = (i % 2 == 0) ? radius : radius / 2;
         star.setPoint(i, sf::Vector2f(std::cos(angle) * r, std::sin(angle) * r));
@@ -59,7 +61,8 @@ int main() {
     sf::Clock starClock;
 
     // Generar los puntos en la galaxia (como círculos)
-    for (int i = 0; i < numPoints; ++i) {
+    #pragma omp parallel for
+for (int i = 0; i < numPoints; ++i) {
         // Añadir un desplazamiento aleatorio al ángulo
         float angleOffset = static_cast<float>(rand()) / RAND_MAX * 2 * 3.14159f;
         float armAngle = (i * angleIncrement) + (2 * 3.14159f / numArms) * (rand() % numArms) + angleOffset * 0.5f;
@@ -127,7 +130,8 @@ int main() {
         window.clear(sf::Color::Black); // Limpiar la ventana con un color negro
 
         // Actualizar la posición de los puntos (círculos de la galaxia)
-        for (int i = 0; i < numPoints; ++i) {
+        #pragma omp parallel for
+for (int i = 0; i < numPoints; ++i) {
             // Obtener la posición actual del punto
             sf::Vector2f pos = points[i].getPosition();
 
