@@ -28,7 +28,7 @@ struct Star
     float lifetime;
 };
 
-// Function to create star shapes with a given radius and number of points
+// Función para crear la forma de estrella
 sf::ConvexShape createStar(float radius, int points)
 {
     sf::ConvexShape star;
@@ -47,7 +47,7 @@ sf::ConvexShape createStar(float radius, int points)
 }
 
 // Función para solicitar parámetros personalizados
-void solicitarParametros(int &numPoints, float &maxRadius, float &speed, float &baseRotationSpeed) {
+void askParameters(int &numPoints, float &maxRadius, float &speed, float &baseRotationSpeed) {
     char userChoice;
     std::cout << "¿Desea usar los parametros por defecto? (y/n): ";
     std::cin >> userChoice;
@@ -114,7 +114,7 @@ int main()
     const int numArms = 5;             // Número de brazos espirales
 
     // Solicitar los parámetros al usuario
-    solicitarParametros(numPoints, maxRadius, speed, baseRotationSpeed);
+    askParameters(numPoints, maxRadius, speed, baseRotationSpeed);
 
     // Crear la ventana
     sf::RenderWindow window(sf::VideoMode(800, 800), "Spiral Galaxy");
