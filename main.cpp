@@ -1,14 +1,32 @@
+/*
+ * Nombre: main.cpp
+ * Autores:
+   - Andrés Montoya, 21552
+   - Fernanda Esquivel, 21542
+   - Francisco Castillo, 21562
+ * Descripción: Screen Saver de Galaxia creado con programación secuencial.
+ * Lenguaje: C++
+ * Recursos: CLion, SFML
+ * Historial:
+   - Creado el 24.08.2024
+   - Modificado el 04.09.2024
+*/
+
 #include <SFML/Graphics.hpp>
 #include <cmath>
 #include <cstdlib>
 #include <sstream>
 #include <vector>
+#include <iostream>
+#include <limits>
 
+// Estructura para manejar la estrella adicional
 struct Star {
     sf::ConvexShape shape;
     float lifetime;
 };
 
+// Función para crear la forma de estrella
 sf::ConvexShape createStar(float radius, int points) {
     sf::ConvexShape star;
     star.setPointCount(points * 2);
@@ -21,17 +39,77 @@ sf::ConvexShape createStar(float radius, int points) {
     return star;
 }
 
+// Función para solicitar parámetros personalizados
+void solicitarParametros(int &numPoints, float &maxRadius, float &speed, float &baseRotationSpeed) {
+    char userChoice;
+    std::cout << "¿Desea usar los parametros por defecto? (y/n): ";
+    std::cin >> userChoice;
+
+    if (userChoice == 'n' || userChoice == 'N') {
+        std::cout << "Ingresa los parametros personalizados:\n";
+
+        // Solicitar numPoints
+        do {
+            std::cout << "Numero de puntos (5000 - 30000): ";
+            std::cin >> numPoints;
+            if (std::cin.fail() || numPoints < 5000 || numPoints > 30000) {
+                std::cout << "Valor invalido. Debe estar entre 5000 y 30000.\n";
+                std::cin.clear();
+                std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+            }
+        } while (numPoints < 5000 || numPoints > 30000);
+
+        // Solicitar maxRadius
+        do {
+            std::cout << "Radio maximo (300.0 - 450.0): ";
+            std::cin >> maxRadius;
+            if (std::cin.fail() || maxRadius < 300.0f || maxRadius > 450.0f) {
+                std::cout << "Valor invalido. Debe estar entre 300.0 y 450.0.\n";
+                std::cin.clear();
+                std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+            }
+        } while (maxRadius < 300.0f || maxRadius > 450.0f);
+
+        // Solicitar speed
+        do {
+            std::cout << "Velocidad (0.035 - 0.099): ";
+            std::cin >> speed;
+            if (std::cin.fail() || speed < 0.035f || speed > 0.099f) {
+                std::cout << "Valor invalido. Debe estar entre 0.035 y 0.099.\n";
+                std::cin.clear();
+                std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+            }
+        } while (speed < 0.035f || speed > 0.099f);
+
+        // Solicitar baseRotationSpeed
+        do {
+            std::cout << "Velocidad de rotacion base (0.0007 - 0.007): ";
+            std::cin >> baseRotationSpeed;
+            if (std::cin.fail() || baseRotationSpeed < 0.0007f || baseRotationSpeed > 0.007f) {
+                std::cout << "Valor invalido. Debe estar entre 0.0007 y 0.007.\n";
+                std::cin.clear();
+                std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+            }
+        } while (baseRotationSpeed < 0.0007f || baseRotationSpeed > 0.007f);
+    } else {
+        std::cout << "Usando parametros por defecto...\n";
+    }
+}
+
 int main() {
+    // Parámetros por defecto de la galaxia
+    int numPoints = 15000;             // Número de puntos en la galaxia
+    float maxRadius = 450.0f;          // Radio máximo de la galaxia
+    const float angleIncrement = 0.70f; // Incremento de ángulo para los brazos espirales
+    float speed = 0.035f;              // Velocidad de los puntos moviéndose hacia el centro
+    float baseRotationSpeed = 0.0007f; // Velocidad base de la rotación de la galaxia
+    const int numArms = 5;             // Número de brazos espirales
+
+    // Solicitar los parámetros al usuario
+    solicitarParametros(numPoints, maxRadius, speed, baseRotationSpeed);
+
     // Crear la ventana
     sf::RenderWindow window(sf::VideoMode(800, 800), "Spiral Galaxy");
-
-    // Parámetros de la galaxia
-    const int numPoints = 15000;             // Número de puntos en la galaxia
-    const float maxRadius = 450.0f;          // Radio máximo de la galaxia
-    const float angleIncrement = 0.70f;      // Incremento de ángulo para los brazos espirales
-    const float speed = 0.035f;              // Velocidad de los puntos moviéndose hacia el centro
-    float baseRotationSpeed = 0.0007f;       // Velocidad base de la rotación de la galaxia
-    const int numArms = 5;                   // Número de brazos espirales
 
     // Centro de la ventana
     sf::Vector2f center(window.getSize().x / 2.0f, window.getSize().y / 2.0f);
@@ -80,25 +158,16 @@ int main() {
         float normalizedRadius = radius / maxRadius;
         if (normalizedRadius < 0.3f) {
             // Amarillo oscuro hacia el centro
-            color = sf::Color(
-                200,
-                200,
-                100 + static_cast<sf::Uint8>(55 * normalizedRadius / 0.3f)
-            );
+            color = sf::Color(200, 200, 100 + static_cast<sf::Uint8>(55 * normalizedRadius / 0.3f));
         } else if (normalizedRadius < 0.7f) {
             // Azul oscuro en la zona media
             color = sf::Color(
                 static_cast<sf::Uint8>(100 * (1 - (normalizedRadius - 0.3f) / 0.4f)),
                 static_cast<sf::Uint8>(100 + 55 * (normalizedRadius - 0.3f) / 0.4f),
-                200
-            );
+                200);
         } else {
             // Violeta oscuro en los bordes
-            color = sf::Color(
-                80 + static_cast<sf::Uint8>(127 * (normalizedRadius - 0.7f) / 0.3f),
-                0,
-                180
-            );
+            color = sf::Color(80 + static_cast<sf::Uint8>(127 * (normalizedRadius - 0.7f) / 0.3f), 0, 180);
         }
 
         star.setFillColor(color);
@@ -163,25 +232,16 @@ int main() {
                 sf::Color newColor;
                 if (normalizedRadius < 0.3f) {
                     // Amarillo oscuro hacia el centro
-                    newColor = sf::Color(
-                        200,
-                        200,
-                        100 + static_cast<sf::Uint8>(55 * normalizedRadius / 0.3f)
-                    );
+                    newColor = sf::Color(200, 200, 100 + static_cast<sf::Uint8>(55 * normalizedRadius / 0.3f));
                 } else if (normalizedRadius < 0.7f) {
                     // Azul oscuro en la zona media
                     newColor = sf::Color(
                         static_cast<sf::Uint8>(100 * (1 - (normalizedRadius - 0.3f) / 0.4f)),
                         static_cast<sf::Uint8>(100 + 55 * (normalizedRadius - 0.3f) / 0.4f),
-                        200
-                    );
+                        200);
                 } else {
                     // Violeta oscuro en los bordes
-                    newColor = sf::Color(
-                        80 + static_cast<sf::Uint8>(127 * (normalizedRadius - 0.7f) / 0.3f),
-                        0,
-                        180
-                    );
+                    newColor = sf::Color(80 + static_cast<sf::Uint8>(127 * (normalizedRadius - 0.7f) / 0.3f), 0, 180);
                 }
                 points[i].setFillColor(newColor);
             }
