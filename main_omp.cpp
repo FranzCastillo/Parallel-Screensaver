@@ -3,6 +3,7 @@
 #include <cstdlib>
 #include <sstream>
 #include <vector>
+#include <random>
 #include <omp.h>
 
 struct Star {
@@ -61,16 +62,15 @@ int main() {
     sf::Clock starClock;
 
     // Generar los puntos en la galaxia (como círculos)
+    std::random_device rd;  // Generador de números aleatorios
+    std::mt19937 gen(rd());  // Semilla para el generador
+    std::uniform_real_distribution<> dis(0, 1);  // Distribución uniforme de 0 a 1
+
     #pragma omp parallel for
-for (int i = 0; i < numPoints; ++i) {
-        // Añadir un desplazamiento aleatorio al ángulo
-        float angleOffset = static_cast<float>(rand()) / RAND_MAX * 2 * 3.14159f;
+    for (int i = 0; i < numPoints; ++i) {
+        float angleOffset = dis(gen) * 2 * 3.14159f;
         float armAngle = (i * angleIncrement) + (2 * 3.14159f / numArms) * (rand() % numArms) + angleOffset * 0.5f;
-
-        // Calcular la posición inicial del punto
-        float radius = maxRadius * std::sqrt(static_cast<float>(rand() % 1000) / 1000.0f) * (0.9f + 0.2f * (static_cast<float>(rand()) / RAND_MAX));
-
-        // Calcular la posición del punto
+        float radius = maxRadius * std::sqrt(dis(gen)) * (0.9f + 0.2f * dis(gen));
         float x = center.x + radius * std::cos(armAngle);
         float y = center.y + radius * std::sin(armAngle);
 
@@ -105,7 +105,6 @@ for (int i = 0; i < numPoints; ++i) {
         }
 
         star.setFillColor(color);
-
         // Añadir el punto al vector
         points[i] = star;
     }
@@ -157,12 +156,9 @@ for (int i = 0; i < numPoints; ++i) {
             // Si el punto está demasiado cerca del centro, moverlo al borde de la galaxia
             if (radius < 0) {
                 radius = maxRadius;
+                angle += dis(gen) * 0.2f - 0.1f;  // Variación aleatoria ligera en el ángulo
+                radius *= 0.9f + dis(gen) * 0.2f;  // Variación aleatoria en el radio
 
-                // Añadir alguna variación aleatoria al ángulo y radio
-                angle += static_cast<float>(rand()) / RAND_MAX * 0.2f - 0.1f; // Variación aleatoria ligera en el ángulo
-                radius *= 0.9f + static_cast<float>(rand()) / RAND_MAX * 0.2f; // Variación aleatoria ligera en el radio
-
-                // Establecer un nuevo color para el punto basado en la distancia
                 float normalizedRadius = radius / maxRadius;
                 sf::Color newColor;
                 if (normalizedRadius < 0.3f) {
@@ -204,9 +200,9 @@ for (int i = 0; i < numPoints; ++i) {
         // Generar estrellas adicionales al azar
         if (starClock.getElapsedTime().asSeconds() > 0.1f) {
             Star newStar;
-            float starRadius = static_cast<float>(rand()) / RAND_MAX * maxRadius;
-            float starAngle = static_cast<float>(rand()) / RAND_MAX * 2 * 3.14159f;
-            newStar.shape = createStar(6.0f, 5);  // Crear estrella más grande para ser visible
+            float starRadius = dis(gen) * maxRadius;
+            float starAngle = dis(gen) * 2 * 3.14159f;
+            newStar.shape = createStar(6.0f, 5);
             newStar.shape.setPosition(
                 center.x + starRadius * std::cos(starAngle),
                 center.y + starRadius * std::sin(starAngle)
