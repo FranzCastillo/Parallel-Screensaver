@@ -168,7 +168,7 @@ int main()
             radius -= attractionSpeed;
 
             // Si el punto está demasiado cerca del centro, moverlo al borde de la galaxia
-            if (radius < 0)
+            if (radius < 1)
             {
                 radius = maxRadius;
                 angle += dis(gen) * 0.2f - 0.1f; // Variación aleatoria ligera en el ángulo
@@ -235,6 +235,7 @@ int main()
         }
 
         // Dibujar y actualizar las estrellas adicionales
+#pragma omp parallel for
         for (size_t i = 0; i < extraStars.size();)
         {
             Star& star = extraStars[i];
