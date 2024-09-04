@@ -228,12 +228,14 @@ int main() {
                 radius = maxRadius;
 
                 // Añadir alguna variación aleatoria al ángulo y radio
-                angle += static_cast<float>(rand()) / RAND_MAX * 0.2f - 0.1f; // Variación aleatoria ligera en el ángulo
-                radius *= 0.9f + static_cast<float>(rand()) / RAND_MAX * 0.2f; // Variación aleatoria ligera en el radio
+                angle += static_cast<float>(rand()) / RAND_MAX * 0.2f - 0.1f;
+                radius *= 0.9f + static_cast<float>(rand()) / RAND_MAX * 0.2f;
 
                 // Establecer un nuevo color para el punto basado en la distancia
                 float normalizedRadius = radius / maxRadius;
                 sf::Color newColor;
+
+                // Usar un ciclo para cambiar los colores de forma continua
                 if (normalizedRadius < 0.3f) {
                     // Amarillo oscuro hacia el centro
                     newColor = sf::Color(200, 200, 100 + static_cast<sf::Uint8>(55 * normalizedRadius / 0.3f));
@@ -244,9 +246,20 @@ int main() {
                         static_cast<sf::Uint8>(100 + 55 * (normalizedRadius - 0.3f) / 0.4f),
                         200);
                 } else {
-                    // Violeta oscuro en los bordes
-                    newColor = sf::Color(80 + static_cast<sf::Uint8>(127 * (normalizedRadius - 0.7f) / 0.3f), 0, 180);
+                    // Volver al color amarillo para continuar el ciclo en lugar de quedarse en violeta
+                    float cycleRadius = fmod(normalizedRadius - 0.7f, 1.0f);  // Usar fmod para reiniciar el ciclo
+                    if (cycleRadius < 0.3f) {
+                        newColor = sf::Color(200, 200, 100 + static_cast<sf::Uint8>(55 * cycleRadius / 0.3f));
+                    } else if (cycleRadius < 0.7f) {
+                        newColor = sf::Color(
+                            static_cast<sf::Uint8>(100 * (1 - (cycleRadius - 0.3f) / 0.4f)),
+                            static_cast<sf::Uint8>(100 + 55 * (cycleRadius - 0.3f) / 0.4f),
+                            200);
+                    } else {
+                        newColor = sf::Color(80 + static_cast<sf::Uint8>(127 * (cycleRadius - 0.7f) / 0.3f), 0, 180);
+                    }
                 }
+
                 points[i].setFillColor(newColor);
             }
 
