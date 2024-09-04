@@ -4,6 +4,7 @@
 #include <sstream>
 #include <vector>
 #include <random>
+#include <omp.h>
 
 struct Star
 {
@@ -16,12 +17,15 @@ sf::ConvexShape createStar(float radius, int points)
 {
     sf::ConvexShape star;
     star.setPointCount(points * 2);
+
+#pragma omp parallel for
     for (int i = 0; i < points * 2; i++)
     {
         float angle = i * 3.14159f / points;
         float r = (i % 2 == 0) ? radius : radius / 2;
         star.setPoint(i, sf::Vector2f(std::cos(angle) * r, std::sin(angle) * r));
     }
+
     star.setOrigin(radius, radius);
     return star;
 }
@@ -71,6 +75,7 @@ int main()
     std::uniform_real_distribution<> dis(0, 1);
 
     // Generate the points in the galaxy (as circles)
+#pragma omp parallel for
     for (int i = 0; i < numPoints; ++i)
     {
         float angleOffset = dis(gen) * 2 * 3.14159f;
@@ -126,6 +131,7 @@ int main()
         window.clear(sf::Color::Black);
 
         // Update the position of galaxy points
+#pragma omp parallel for
         for (int i = 0; i < numPoints; ++i)
         {
             sf::Vector2f pos = points[i].getPosition();
@@ -169,6 +175,11 @@ int main()
             float y = center.y + radius * std::sin(angle);
 
             points[i].setPosition(x, y);
+        }
+
+        // Draw galaxy points
+        for (int i = 0; i < numPoints; ++i)
+        {
             window.draw(points[i]);
         }
 
