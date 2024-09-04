@@ -41,9 +41,9 @@ sf::ConvexShape createStar(float radius, int points) {
 
 // Función para solicitar parámetros personalizados
 void askParameters(int &numPoints, float &maxRadius, float &speed, float &baseRotationSpeed) {
-    char userChoice;
-    std::cout << "¿Desea usar los parametros por defecto? (y/n): ";
-    std::cin >> userChoice;
+    char userChoice = 'y';
+    //std::cout << "¿Desea usar los parametros por defecto? (y/n): ";
+    //std::cin >> userChoice;
 
     if (userChoice == 'n' || userChoice == 'N') {
         std::cout << "Ingresa los parametros personalizados:\n";

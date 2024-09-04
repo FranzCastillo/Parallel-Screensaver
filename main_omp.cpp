@@ -98,6 +98,11 @@ void askParameters(int &numPoints, float &maxRadius, float &speed, float &baseRo
     } else {
         std::cout << "Usando parametros por defecto...\n";
     }
+
+    #pragma omp parallel
+    {
+        printf("Preparando hilo %d de %d\n", omp_get_thread_num(), omp_get_num_threads());
+    }
 }
 
 int main() {
