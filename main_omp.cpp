@@ -22,21 +22,18 @@
 #include <iostream>
 #include <limits>
 
-struct Star
-{
+struct Star {
     sf::ConvexShape shape;
     float lifetime;
 };
 
 // Función para crear la forma de estrella
-sf::ConvexShape createStar(float radius, int points)
-{
+sf::ConvexShape createStar(float radius, int points) {
     sf::ConvexShape star;
     star.setPointCount(points * 2);
 
 #pragma omp parallel for
-    for (int i = 0; i < points * 2; i++)
-    {
+    for (int i = 0; i < points * 2; i++) {
         float angle = i * 3.14159f / points;
         float r = (i % 2 == 0) ? radius : radius / 2;
         star.setPoint(i, sf::Vector2f(std::cos(angle) * r, std::sin(angle) * r));
@@ -103,8 +100,7 @@ void askParameters(int &numPoints, float &maxRadius, float &speed, float &baseRo
     }
 }
 
-int main()
-{
+int main() {
     // Parámetros por defecto de la galaxia
     int numPoints = 15000;             // Número de puntos en la galaxia
     float maxRadius = 450.0f;          // Radio máximo de la galaxia
@@ -127,8 +123,7 @@ int main()
 
     // Fuente para el contador de FPS
     sf::Font font;
-    if (!font.loadFromFile("C:/Windows/Fonts/arial.ttf"))
-    {
+    if (!font.loadFromFile("C:/Windows/Fonts/arial.ttf")) {
         return -1;
     }
 
@@ -140,6 +135,7 @@ int main()
 
     // Reloj para medir el tiempo entre cuadros
     sf::Clock clock;
+    std::vector<float> frameTimes; // Almacenar los tiempos de frame
 
     // Vector para almacenar las estrellas adicionales
     std::vector<Star> extraStars;
@@ -152,8 +148,7 @@ int main()
 
     // Generar los puntos en la galaxia (como círculos)
 #pragma omp parallel for
-    for (int i = 0; i < numPoints; ++i)
-    {
+    for (int i = 0; i < numPoints; ++i) {
         float angleOffset = dis(gen) * 2 * 3.14159f;
         float armAngle = (i * angleIncrement) + (2 * 3.14159f / numArms) * (rand() % numArms) + angleOffset * 0.5f;
 
@@ -168,17 +163,12 @@ int main()
         // Determinar el color basado en la distancia desde el centro
         sf::Color color;
         float normalizedRadius = radius / maxRadius;
-        if (normalizedRadius < 0.3f)
-        {
+        if (normalizedRadius < 0.3f) {
             color = sf::Color(200, 200, 100 + static_cast<sf::Uint8>(55 * normalizedRadius / 0.3f));
-        }
-        else if (normalizedRadius < 0.7f)
-        {
+        } else if (normalizedRadius < 0.7f) {
             color = sf::Color(static_cast<sf::Uint8>(100 * (1 - (normalizedRadius - 0.3f) / 0.4f)),
                               static_cast<sf::Uint8>(100 + 55 * (normalizedRadius - 0.3f) / 0.4f), 200);
-        }
-        else
-        {
+        } else {
             color = sf::Color(80 + static_cast<sf::Uint8>(127 * (normalizedRadius - 0.7f) / 0.3f), 0, 180);
         }
         star.setFillColor(color);
@@ -186,17 +176,16 @@ int main()
         points[i] = star;
     }
 
-    // Main loop
-    while (window.isOpen())
-    {
+    // Bucle principal
+    while (window.isOpen()) {
         sf::Event event;
-        while (window.pollEvent(event))
-        {
+        while (window.pollEvent(event)) {
             if (event.type == sf::Event::Closed)
                 window.close();
         }
 
         float currentTime = clock.restart().asSeconds();
+        frameTimes.push_back(currentTime); // Almacenar el tiempo de cada frame
         float fps = 1.0f / currentTime;
 
         // Actualizar el contador de FPS
@@ -208,8 +197,7 @@ int main()
 
         // Actualizar la posición de los puntos de la galaxia
 #pragma omp parallel for
-        for (int i = 0; i < numPoints; ++i)
-        {
+        for (int i = 0; i < numPoints; ++i) {
             sf::Vector2f pos = points[i].getPosition();
             float dx = pos.x - center.x;
             float dy = pos.y - center.y;
@@ -223,25 +211,19 @@ int main()
             float attractionSpeed = speed * (1.0f + (maxRadius - radius) / maxRadius);
             radius -= attractionSpeed;
 
-            if (radius < 0)
-            {
+            if (radius < 0) {
                 radius = maxRadius;
                 angle += dis(gen) * 0.2f - 0.1f;
                 radius *= 0.9f + dis(gen) * 0.2f;
 
                 float normalizedRadius = radius / maxRadius;
                 sf::Color newColor;
-                if (normalizedRadius < 0.3f)
-                {
+                if (normalizedRadius < 0.3f) {
                     newColor = sf::Color(200, 200, 100 + static_cast<sf::Uint8>(55 * normalizedRadius / 0.3f));
-                }
-                else if (normalizedRadius < 0.7f)
-                {
+                } else if (normalizedRadius < 0.7f) {
                     newColor = sf::Color(static_cast<sf::Uint8>(100 * (1 - (normalizedRadius - 0.3f) / 0.4f)),
                                          static_cast<sf::Uint8>(100 + 55 * (normalizedRadius - 0.3f) / 0.4f), 200);
-                }
-                else
-                {
+                } else {
                     newColor = sf::Color(80 + static_cast<sf::Uint8>(127 * (normalizedRadius - 0.7f) / 0.3f), 0, 180);
                 }
                 points[i].setFillColor(newColor);
@@ -253,18 +235,15 @@ int main()
             points[i].setPosition(x, y);
         }
 
-        // Ensure all positions are calculated before drawing
-#pragma omp barrier
+#pragma omp barrier // Asegurar que todas las posiciones se calculen antes de dibujar
 
         // Dibujar los puntos de la galaxia
-        for (int i = 0; i < numPoints; ++i)
-        {
+        for (int i = 0; i < numPoints; ++i) {
             window.draw(points[i]);
         }
 
         // Generar estrellas adicionales al azar
-        if (starClock.getElapsedTime().asSeconds() > 0.1f)
-        {
+        if (starClock.getElapsedTime().asSeconds() > 0.1f) {
             Star newStar;
             float starRadius = dis(gen) * maxRadius;
             float starAngle = dis(gen) * 2 * 3.14159f;
@@ -280,17 +259,13 @@ int main()
         }
 
         // Dibujar y actualizar las estrellas adicionales
-        for (size_t i = 0; i < extraStars.size();)
-        {
+        for (size_t i = 0; i < extraStars.size();) {
             Star& star = extraStars[i];
             window.draw(star.shape);
             star.lifetime -= currentTime;
-            if (star.lifetime <= 0.0f)
-            {
+            if (star.lifetime <= 0.0f) {
                 extraStars.erase(extraStars.begin() + i);
-            }
-            else
-            {
+            } else {
                 float alpha = static_cast<sf::Uint8>(255 * (star.lifetime / 1.5f)); // Ajustar opacidad basada en el tiempo de vida
                 star.shape.setFillColor(sf::Color(255, 255, 255, alpha));
                 ++i;
@@ -301,6 +276,15 @@ int main()
 
         window.display(); // Mostrar la ventana
     }
+
+    // Cálculo del tiempo promedio por frame
+    float totalFrameTime = 0.0f;
+    for (const auto& time : frameTimes) {
+        totalFrameTime += time;
+    }
+
+    float avgFrameTime = totalFrameTime / frameTimes.size();
+    std::cout << "Tiempo promedio por frame: " << avgFrameTime << " segundos" << std::endl;
 
     return 0;
 }

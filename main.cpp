@@ -136,6 +136,9 @@ int main() {
     std::vector<Star> extraStars;
     sf::Clock starClock;
 
+    // Almacenar los tiempos de frame para calcular el promedio
+    std::vector<float> frameTimes;
+
     // Generar los puntos en la galaxia (como círculos)
     for (int i = 0; i < numPoints; ++i) {
         // Añadir un desplazamiento aleatorio al ángulo
@@ -186,6 +189,7 @@ int main() {
 
         // Calcular el tiempo entre cuadros
         float currentTime = clock.restart().asSeconds();
+        frameTimes.push_back(currentTime); // Almacenar el tiempo de frame actual
         float fps = 1.0f / currentTime;
 
         // Actualizar el contador de FPS
@@ -291,6 +295,15 @@ int main() {
 
         window.display(); // Mostrar la ventana
     }
+
+    // Cálculo del tiempo promedio por frame
+    float totalFrameTime = 0.0f;
+    for (const auto& time : frameTimes) {
+        totalFrameTime += time;
+    }
+
+    float avgFrameTime = totalFrameTime / frameTimes.size();
+    std::cout << "Tiempo promedio por frame: " << avgFrameTime << " segundos" << std::endl;
 
     return 0;
 }
