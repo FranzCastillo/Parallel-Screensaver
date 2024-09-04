@@ -6,16 +6,19 @@
 #include <random>
 #include <omp.h>
 
-struct Star {
+struct Star
+{
     sf::ConvexShape shape;
     float lifetime;
 };
 
-sf::ConvexShape createStar(float radius, int points) {
+sf::ConvexShape createStar(float radius, int points)
+{
     sf::ConvexShape star;
     star.setPointCount(points * 2);
-    #pragma omp parallel for
-for (int i = 0; i < points * 2; i++) {
+#pragma omp parallel for
+    for (int i = 0; i < points * 2; i++)
+    {
         float angle = i * 3.14159f / points;
         float r = (i % 2 == 0) ? radius : radius / 2;
         star.setPoint(i, sf::Vector2f(std::cos(angle) * r, std::sin(angle) * r));
@@ -24,17 +27,18 @@ for (int i = 0; i < points * 2; i++) {
     return star;
 }
 
-int main() {
+int main()
+{
     // Crear la ventana
     sf::RenderWindow window(sf::VideoMode(800, 800), "Spiral Galaxy");
 
     // Parámetros de la galaxia
-    const int numPoints = 15000;             // Número de puntos en la galaxia
-    const float maxRadius = 450.0f;          // Radio máximo de la galaxia
-    const float angleIncrement = 0.70f;      // Incremento de ángulo para los brazos espirales
-    const float speed = 0.035f;              // Velocidad de los puntos moviéndose hacia el centro
-    float baseRotationSpeed = 0.0007f;       // Velocidad base de la rotación de la galaxia
-    const int numArms = 5;                   // Número de brazos espirales
+    const int numPoints = 15000; // Número de puntos en la galaxia
+    const float maxRadius = 450.0f; // Radio máximo de la galaxia
+    const float angleIncrement = 0.70f; // Incremento de ángulo para los brazos espirales
+    const float speed = 0.035f; // Velocidad de los puntos moviéndose hacia el centro
+    float baseRotationSpeed = 0.0007f; // Velocidad base de la rotación de la galaxia
+    const int numArms = 5; // Número de brazos espirales
 
     // Centro de la ventana
     sf::Vector2f center(window.getSize().x / 2.0f, window.getSize().y / 2.0f);
@@ -44,7 +48,8 @@ int main() {
 
     // Fuente para el contador de FPS
     sf::Font font;
-    if (!font.loadFromFile("C:/Windows/Fonts/arial.ttf")) {
+    if (!font.loadFromFile("C:/Windows/Fonts/arial.ttf"))
+    {
         return -1;
     }
 
@@ -62,12 +67,13 @@ int main() {
     sf::Clock starClock;
 
     // Generar los puntos en la galaxia (como círculos)
-    std::random_device rd;  // Generador de números aleatorios
-    std::mt19937 gen(rd());  // Semilla para el generador
-    std::uniform_real_distribution<> dis(0, 1);  // Distribución uniforme de 0 a 1
+    std::random_device rd; // Generador de números aleatorios
+    std::mt19937 gen(rd()); // Semilla para el generador
+    std::uniform_real_distribution<> dis(0, 1); // Distribución uniforme de 0 a 1
 
-    #pragma omp parallel for
-    for (int i = 0; i < numPoints; ++i) {
+#pragma omp parallel for
+    for (int i = 0; i < numPoints; ++i)
+    {
         float angleOffset = dis(gen) * 2 * 3.14159f;
         float armAngle = (i * angleIncrement) + (2 * 3.14159f / numArms) * (rand() % numArms) + angleOffset * 0.5f;
         float radius = maxRadius * std::sqrt(dis(gen)) * (0.9f + 0.2f * dis(gen));
@@ -81,21 +87,26 @@ int main() {
         // Determinar el color basado en la distancia desde el centro
         sf::Color color;
         float normalizedRadius = radius / maxRadius;
-        if (normalizedRadius < 0.3f) {
+        if (normalizedRadius < 0.3f)
+        {
             // Amarillo oscuro hacia el centro
             color = sf::Color(
                 200,
                 200,
                 100 + static_cast<sf::Uint8>(55 * normalizedRadius / 0.3f)
             );
-        } else if (normalizedRadius < 0.7f) {
+        }
+        else if (normalizedRadius < 0.7f)
+        {
             // Azul oscuro en la zona media
             color = sf::Color(
                 static_cast<sf::Uint8>(100 * (1 - (normalizedRadius - 0.3f) / 0.4f)),
                 static_cast<sf::Uint8>(100 + 55 * (normalizedRadius - 0.3f) / 0.4f),
                 200
             );
-        } else {
+        }
+        else
+        {
             // Violeta oscuro en los bordes
             color = sf::Color(
                 80 + static_cast<sf::Uint8>(127 * (normalizedRadius - 0.7f) / 0.3f),
@@ -110,9 +121,11 @@ int main() {
     }
 
     // Bucle principal
-    while (window.isOpen()) {
+    while (window.isOpen())
+    {
         sf::Event event;
-        while (window.pollEvent(event)) {
+        while (window.pollEvent(event))
+        {
             if (event.type == sf::Event::Closed)
                 window.close();
         }
@@ -129,8 +142,9 @@ int main() {
         window.clear(sf::Color::Black); // Limpiar la ventana con un color negro
 
         // Actualizar la posición de los puntos (círculos de la galaxia)
-        #pragma omp parallel for
-for (int i = 0; i < numPoints; ++i) {
+#pragma omp parallel for
+        for (int i = 0; i < numPoints; ++i)
+        {
             // Obtener la posición actual del punto
             sf::Vector2f pos = points[i].getPosition();
 
@@ -154,28 +168,34 @@ for (int i = 0; i < numPoints; ++i) {
             radius -= attractionSpeed;
 
             // Si el punto está demasiado cerca del centro, moverlo al borde de la galaxia
-            if (radius < 0) {
+            if (radius < 0)
+            {
                 radius = maxRadius;
-                angle += dis(gen) * 0.2f - 0.1f;  // Variación aleatoria ligera en el ángulo
-                radius *= 0.9f + dis(gen) * 0.2f;  // Variación aleatoria en el radio
+                angle += dis(gen) * 0.2f - 0.1f; // Variación aleatoria ligera en el ángulo
+                radius *= 0.9f + dis(gen) * 0.2f; // Variación aleatoria en el radio
 
                 float normalizedRadius = radius / maxRadius;
                 sf::Color newColor;
-                if (normalizedRadius < 0.3f) {
+                if (normalizedRadius < 0.3f)
+                {
                     // Amarillo oscuro hacia el centro
                     newColor = sf::Color(
                         200,
                         200,
                         100 + static_cast<sf::Uint8>(55 * normalizedRadius / 0.3f)
                     );
-                } else if (normalizedRadius < 0.7f) {
+                }
+                else if (normalizedRadius < 0.7f)
+                {
                     // Azul oscuro en la zona media
                     newColor = sf::Color(
                         static_cast<sf::Uint8>(100 * (1 - (normalizedRadius - 0.3f) / 0.4f)),
                         static_cast<sf::Uint8>(100 + 55 * (normalizedRadius - 0.3f) / 0.4f),
                         200
                     );
-                } else {
+                }
+                else
+                {
                     // Violeta oscuro en los bordes
                     newColor = sf::Color(
                         80 + static_cast<sf::Uint8>(127 * (normalizedRadius - 0.7f) / 0.3f),
@@ -198,7 +218,8 @@ for (int i = 0; i < numPoints; ++i) {
         }
 
         // Generar estrellas adicionales al azar
-        if (starClock.getElapsedTime().asSeconds() > 0.1f) {
+        if (starClock.getElapsedTime().asSeconds() > 0.1f)
+        {
             Star newStar;
             float starRadius = dis(gen) * maxRadius;
             float starAngle = dis(gen) * 2 * 3.14159f;
@@ -214,13 +235,17 @@ for (int i = 0; i < numPoints; ++i) {
         }
 
         // Dibujar y actualizar las estrellas adicionales
-        for (size_t i = 0; i < extraStars.size();) {
-            Star &star = extraStars[i];
+        for (size_t i = 0; i < extraStars.size();)
+        {
+            Star& star = extraStars[i];
             window.draw(star.shape);
             star.lifetime -= currentTime;
-            if (star.lifetime <= 0.0f) {
+            if (star.lifetime <= 0.0f)
+            {
                 extraStars.erase(extraStars.begin() + i);
-            } else {
+            }
+            else
+            {
                 float alpha = static_cast<sf::Uint8>(255 * (star.lifetime / 1.5f)); // Ajuste del tiempo de vida
                 star.shape.setFillColor(sf::Color(255, 255, 255, alpha));
                 ++i;
