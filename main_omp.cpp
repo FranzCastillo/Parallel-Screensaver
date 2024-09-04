@@ -253,6 +253,9 @@ int main()
             points[i].setPosition(x, y);
         }
 
+        // Ensure all positions are calculated before drawing
+#pragma omp barrier
+
         // Dibujar los puntos de la galaxia
         for (int i = 0; i < numPoints; ++i)
         {
