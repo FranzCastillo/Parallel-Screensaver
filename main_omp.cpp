@@ -1,3 +1,17 @@
+/*
+* Nombre: main_omp.cpp
+* Autores:
+  - Andrés Montoya, 21552
+  - Fernanda Esquivel, 21542
+  - Francisco Castillo, 21562
+* Descripción: Screen Saver de Galaxia creado con programación paralela (OpenMP).
+* Lenguaje: C++
+* Recursos: CLion, SFML
+* Historial:
+  - Creado el 03.09.2024
+  - Modificado el 04.09.2024
+*/
+
 #include <SFML/Graphics.hpp>
 #include <cmath>
 #include <cstdlib>
@@ -5,6 +19,8 @@
 #include <vector>
 #include <random>
 #include <omp.h>
+#include <iostream>
+#include <limits>
 
 struct Star
 {
@@ -30,26 +46,86 @@ sf::ConvexShape createStar(float radius, int points)
     return star;
 }
 
+// Función para solicitar parámetros personalizados
+void solicitarParametros(int &numPoints, float &maxRadius, float &speed, float &baseRotationSpeed) {
+    char userChoice;
+    std::cout << "¿Desea usar los parametros por defecto? (y/n): ";
+    std::cin >> userChoice;
+
+    if (userChoice == 'n' || userChoice == 'N') {
+        std::cout << "Ingresa los parametros personalizados:\n";
+
+        // Solicitar numPoints
+        do {
+            std::cout << "Numero de puntos (5000 - 30000): ";
+            std::cin >> numPoints;
+            if (std::cin.fail() || numPoints < 5000 || numPoints > 30000) {
+                std::cout << "Valor invalido. Debe estar entre 5000 y 30000.\n";
+                std::cin.clear();
+                std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+            }
+        } while (numPoints < 5000 || numPoints > 30000);
+
+        // Solicitar maxRadius
+        do {
+            std::cout << "Radio maximo (300.0 - 450.0): ";
+            std::cin >> maxRadius;
+            if (std::cin.fail() || maxRadius < 300.0f || maxRadius > 450.0f) {
+                std::cout << "Valor invalido. Debe estar entre 300.0 y 450.0.\n";
+                std::cin.clear();
+                std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+            }
+        } while (maxRadius < 300.0f || maxRadius > 450.0f);
+
+        // Solicitar speed
+        do {
+            std::cout << "Velocidad (0.035 - 0.099): ";
+            std::cin >> speed;
+            if (std::cin.fail() || speed < 0.035f || speed > 0.099f) {
+                std::cout << "Valor invalido. Debe estar entre 0.035 y 0.099.\n";
+                std::cin.clear();
+                std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+            }
+        } while (speed < 0.035f || speed > 0.099f);
+
+        // Solicitar baseRotationSpeed
+        do {
+            std::cout << "Velocidad de rotacion base (0.0007 - 0.007): ";
+            std::cin >> baseRotationSpeed;
+            if (std::cin.fail() || baseRotationSpeed < 0.0007f || baseRotationSpeed > 0.007f) {
+                std::cout << "Valor invalido. Debe estar entre 0.0007 y 0.007.\n";
+                std::cin.clear();
+                std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+            }
+        } while (baseRotationSpeed < 0.0007f || baseRotationSpeed > 0.007f);
+    } else {
+        std::cout << "Usando parametros por defecto...\n";
+    }
+}
+
 int main()
 {
-    // Create the window
+    // Parámetros por defecto de la galaxia
+    int numPoints = 15000;             // Número de puntos en la galaxia
+    float maxRadius = 450.0f;          // Radio máximo de la galaxia
+    const float angleIncrement = 0.70f; // Incremento de ángulo para los brazos espirales
+    float speed = 0.035f;              // Velocidad de los puntos moviéndose hacia el centro
+    float baseRotationSpeed = 0.0007f; // Velocidad base de la rotación de la galaxia
+    const int numArms = 5;             // Número de brazos espirales
+
+    // Solicitar los parámetros al usuario
+    solicitarParametros(numPoints, maxRadius, speed, baseRotationSpeed);
+
+    // Crear la ventana
     sf::RenderWindow window(sf::VideoMode(800, 800), "Spiral Galaxy");
 
-    // Galaxy parameters
-    const int numPoints = 15000; // Number of points in the galaxy
-    const float maxRadius = 450.0f; // Maximum radius of the galaxy
-    const float angleIncrement = 0.70f; // Angle increment for spiral arms
-    const float speed = 0.035f; // Speed of points moving toward the center
-    float baseRotationSpeed = 0.0007f; // Base rotation speed of the galaxy
-    const int numArms = 5; // Number of spiral arms
-
-    // Center of the window
+    // Centro de la ventana
     sf::Vector2f center(window.getSize().x / 2.0f, window.getSize().y / 2.0f);
 
-    // Vector to store all galaxy points
+    // Vector para almacenar todos los puntos de la galaxia
     std::vector<sf::CircleShape> points(numPoints);
 
-    // Load font for FPS counter
+    // Fuente para el contador de FPS
     sf::Font font;
     if (!font.loadFromFile("C:/Windows/Fonts/arial.ttf"))
     {
@@ -62,19 +138,19 @@ int main()
     fpsText.setFillColor(sf::Color::White);
     fpsText.setPosition(10, 10);
 
-    // Clock to measure time between frames
+    // Reloj para medir el tiempo entre cuadros
     sf::Clock clock;
 
-    // Vector to store additional stars
+    // Vector para almacenar las estrellas adicionales
     std::vector<Star> extraStars;
     sf::Clock starClock;
 
-    // Random number generator
+    // Generador de números aleatorios
     std::random_device rd;
     std::mt19937 gen(rd());
     std::uniform_real_distribution<> dis(0, 1);
 
-    // Generate the points in the galaxy (as circles)
+    // Generar los puntos en la galaxia (como círculos)
 #pragma omp parallel for
     for (int i = 0; i < numPoints; ++i)
     {
@@ -85,11 +161,11 @@ int main()
         float x = center.x + radius * std::cos(armAngle);
         float y = center.y + radius * std::sin(armAngle);
 
-        // Create a point with a radius of 1 or 2 pixels (circles)
+        // Crear un punto con un radio de 1 o 2 píxeles (círculos)
         sf::CircleShape star((rand() % 10) < 3 ? 2.0f : 1.0f);
         star.setPosition(x, y);
 
-        // Determine the color based on the distance from the center
+        // Determinar el color basado en la distancia desde el centro
         sf::Color color;
         float normalizedRadius = radius / maxRadius;
         if (normalizedRadius < 0.3f)
@@ -123,14 +199,14 @@ int main()
         float currentTime = clock.restart().asSeconds();
         float fps = 1.0f / currentTime;
 
-        // Update FPS counter
+        // Actualizar el contador de FPS
         std::stringstream ss;
         ss << "FPS: " << static_cast<int>(fps);
         fpsText.setString(ss.str());
 
         window.clear(sf::Color::Black);
 
-        // Update the position of galaxy points
+        // Actualizar la posición de los puntos de la galaxia
 #pragma omp parallel for
         for (int i = 0; i < numPoints; ++i)
         {
@@ -177,30 +253,30 @@ int main()
             points[i].setPosition(x, y);
         }
 
-        // Draw galaxy points
+        // Dibujar los puntos de la galaxia
         for (int i = 0; i < numPoints; ++i)
         {
             window.draw(points[i]);
         }
 
-        // Generate additional stars randomly
+        // Generar estrellas adicionales al azar
         if (starClock.getElapsedTime().asSeconds() > 0.1f)
         {
             Star newStar;
             float starRadius = dis(gen) * maxRadius;
             float starAngle = dis(gen) * 2 * 3.14159f;
-            newStar.shape = createStar(6.0f, 5); // Create a larger star
+            newStar.shape = createStar(6.0f, 5); // Crear una estrella más grande
             newStar.shape.setPosition(
                 center.x + starRadius * std::cos(starAngle),
                 center.y + starRadius * std::sin(starAngle)
             );
-            newStar.shape.setFillColor(sf::Color(255, 255, 255, 255)); // Full opacity initially
-            newStar.lifetime = 1.5f; // Star lifetime in seconds
+            newStar.shape.setFillColor(sf::Color(255, 255, 255, 255)); // Opacidad inicial completa
+            newStar.lifetime = 1.5f; // Tiempo de vida de la estrella en segundos
             extraStars.push_back(newStar);
             starClock.restart();
         }
 
-        // Draw and update additional stars
+        // Dibujar y actualizar las estrellas adicionales
         for (size_t i = 0; i < extraStars.size();)
         {
             Star& star = extraStars[i];
@@ -212,15 +288,15 @@ int main()
             }
             else
             {
-                float alpha = static_cast<sf::Uint8>(255 * (star.lifetime / 1.5f)); // Adjust opacity based on lifetime
+                float alpha = static_cast<sf::Uint8>(255 * (star.lifetime / 1.5f)); // Ajustar opacidad basada en el tiempo de vida
                 star.shape.setFillColor(sf::Color(255, 255, 255, alpha));
                 ++i;
             }
         }
 
-        window.draw(fpsText); // Draw the FPS counter
+        window.draw(fpsText); // Dibujar el contador de FPS
 
-        window.display(); // Display the window
+        window.display(); // Mostrar la ventana
     }
 
     return 0;
